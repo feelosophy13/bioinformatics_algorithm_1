@@ -128,6 +128,7 @@ def calc_cum_dist_btwn_ptrn_and_all_DNA_str(ptrn, DNA_list):
 
 ## this function returns a median string, a pattern with the smallest cumulative Hamming distance against a list of DNA strings, that has a length of k
 ## this function is extremely slow for large values for k and is the cause of bottleneck for Greedy Motif Search algorithm
+## also, there could be multiple median strings; this function returns only one 
 def find_median_str(DNA_list, k):
     min_cum_dist = float('Inf')
     n_iter = 4 ** k
@@ -163,12 +164,16 @@ def get_kmer_prob_based_on_prof_mtrx(kmer, profile_matrix):
 # 2. Calculate probabilities of all k-mers in above list. 
 # 3. Find a k-mer with maximum probability value.
 
-# The function should just return the first one it finds if all the kmers in the string have zero probability
-# If all the k-mer in the i-th string have probability 0, then all motifs are Profile-most probable .
-def find_most_prob_kmer_based_on_prof_mtrx(DNA_str, k, profile_matrix):
+# The function returns an empty string if all the kmers in the string have zero probability
+def find_most_prob_kmer_based_on_prof_mtrx(DNA_str, k, profile_matrix, zero_prob_adj=True):
+    k = len(profile_matrix[0])
     n_iter = len(DNA_str) - k + 1
     most_prob_kmer = ''
     max_prob = 0
+
+    if zero_prob_adj:
+        profile_matrix = np.array(profile_matrix) + 1
+        profile_matrix = profile_matrix.tolist()
     for i in range(0, n_iter):
         kmer = DNA_str[i:i+k]
         kmer_prob = get_kmer_prob_based_on_prof_mtrx(kmer, profile_matrix)
@@ -334,8 +339,8 @@ print find_all_kmers_in_DNA_str('ABCDEFG', 4)
 DNA_list = ['ABCDE', 'VWXYZ']
 print find_all_kmers_in_DNA_list(DNA_list, 3)
 
-print kmer_exists_in_DNA_str('ACA', 'ACCA', 1)
-print kmer_exists_in_DNA_str('CCC', 'CATT', 1)
+print check_kmer_exists_in_DNA_str('ACA', 'ACCA', 1)
+print check_kmer_exists_in_DNA_str('CCC', 'CATT', 1)
 
 kmer = 'AAA'
 DNA_list = ['AAAA', 'AACA', 'ACAA']
@@ -426,6 +431,5 @@ DNA_list = load_file_lines_onto_list('dataset.txt')
 k = 12
 print find_best_motifs_greedy(DNA_list, k, zero_prob_adj=False)
 print find_best_motifs_greedy(DNA_list, k, zero_prob_adj=True)
-
 
 """
